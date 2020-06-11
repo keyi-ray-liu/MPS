@@ -23,7 +23,7 @@ def main(PostProcess=False):
     eefactor = 1
     nfactor = 2
 
-    testflag = 'finite'
+    testflag = 'Finite'
     max_sweep = 10
     int_range = L
     #lambda_up = 20
@@ -93,14 +93,14 @@ def main(PostProcess=False):
     #myObservables.AddObservable('corr', ['fdagger','f'], 'spdm', Phase=True)
 
     # Convergence data
-    myConv = mps.MPSConvParam(max_bond_dimension=100, max_num_sweeps=6)
-    myKrylovConv = mps.KrylovConvParam(max_num_lanczos_iter=20, lanczos_tol=1E-6)
+    myConv = mps.MPSConvParam(max_bond_dimension=500, max_num_sweeps=10)
+    myDynConv = mps.TDVPConvParam(max_num_lanczos_iter=20, lanczos_tol=1E-6)
 
     #lambda_list = np.logspace(lambda_lo, lambda_up, itr)
     #lambda_list=np.linspace(lambda_lo,lambda_up,itr)
 
 
-    lambda_list = np.array([ 0.03, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5, 6, 7,
+    lambda_list = np.array([ 0.0, 0.03, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5, 6, 7,
      8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 40, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000])
 
     if not eefactor:
@@ -126,18 +126,24 @@ def main(PostProcess=False):
             return (1.0 + 2.0 * (10.0 - 1.0) * (t - 0.5 * tscale) / tscale)/10 * lambda_int
 
         Quenches = mps.QuenchList(H)
-        Quenches.AddQuench(['lambda_int'], 0.5 * tscale, min(0.5 * tscale / 100.0, 0.1), [lambdafuncdown], ConvergenceParameters=myKrylovConv)
-        Quenches.AddQuench(['lambda_int'], 0.5 * tscale, min(0.5 * tscale / 100.0, 0.1), [lambdafuncup], ConvergenceParameters=myKrylovConv)
+        Quenches.AddQuench(['lambda_int'], 0.5 * tscale, min(0.5 * tscale / 100.0, 0.1), [lambdafuncdown], ConvergenceParameters=myDynConv)
+        Quenches.AddQuench(['lambda_int'], 0.5 * tscale, min(0.5 * tscale / 100.0, 0.1), [lambdafuncup], ConvergenceParameters=myDynConv)
     # Define statics
-        ID = 'evo' + testflag + 'L_' + str(L) + 'N' + str(N) + 'int' + str(int_range) +  'lambda' + str(lambda_int) + 'exc' + str(exchange) + 'eig' + str(eigenstate) + 'factor' + str(eefactor) + '_' + str(nfactor) + str(tscale)
+
+        ID = 'evo' + testflag + 'L_' + str(L) + 'N' + str(N) + 'int' + str(int_range) +  'lambda' + str(lambda_int) + 'exc' + str(exchange) + 'eig' + \
+         str(eigenstate) + 'factor' + str(eefactor) + '_' + str(nfactor)  
+
+
+        dirID = 'evo' + testflag + 'L_' + str(L) + 'N' + str(N) + 'int' + str(int_range)  + 'exc' + str(exchange) + 'eig' + \
+         str(eigenstate) + 'factor' + str(eefactor) + '_' + str(nfactor) + '/'
 
         parameters.append({ 
         # Directories
-            'simtype'                   : 'Finite',
+            'simtype'                   : testflag,
             'job_ID'                    : 'GWB_ET',
             'unique_ID'                 : ID,
-            'Write_Directory'           : 'GWB_ET/',
-            'Output_Directory'          : 'OUTPUTS_GWB_ET/',
+            'Write_Directory'           : 'TDVP' + dirID,
+            'Output_Directory'          : 'OUTPUTS' +'TDVP' +  dirID,
         # System size and Hamiltonian parameters
             'L'                         : L,
             't'                         : t, 
@@ -209,7 +215,7 @@ def main(PostProcess=False):
 
 
     file_name = 'evo' + testflag + str(L) + '_' + str(N) + 'res_ex_' + str(exchange)  + '_eig' + str(eigenstate) +'_range' +  str(int_range) +'_' + str(max_sweep) + '.dat'
-    gs_name = 'evogs' + testflag + str(L) + '_' + str(N) + 'int' + str(int_range) + '_ex_' + str(exchange)  + '_eescale_' + str(eefactor) + '_nscale_' + str(nfactor)  + '_tscale_'+ str(tscale) + '.dat'
+    gs_name = 'gsevo' + testflag + str(L) + '_' + str(N) + 'int' + str(int_range) + '_ex_' + str(exchange)  + '_eescale_' + str(eefactor) + '_nscale_' + str(nfactor)  + '_tscale_'+ str(tscale) + '.dat'
     plot_name = 'evo' + testflag + str(L) + '_' + str(N) + 'energy_ex_' + str(exchange)   + '_eig' +  str(eigenstate) + '_range' +  str(int_range) +'_' + str(max_sweep) + '.png'
 
     np.savetxt(file_name, newenergy, fmt='%10.5f')

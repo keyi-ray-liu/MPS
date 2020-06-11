@@ -17,15 +17,17 @@ def main(PostProcess=False):
     eigenstate = 0
     totalstate = eigenstate + 1
 
+    specflag = 'S'
+
     t = 1.0
     L = 12
     N = 6
     eefactor = 1
-    nfactor = 0
+    nfactor = 2
 
-    testflag = 'finite'
+    testflag = 'Finite'
     max_sweep = 10
-    int_range = 1
+    int_range = L
     lambda_up = 20
     lambda_lo = 0
     itr = 21
@@ -90,14 +92,15 @@ def main(PostProcess=False):
     #myObservables.AddObservable('corr', ['fdagger','f'], 'spdm', Phase=True)
 
     # Convergence data
-    myConv = mps.MPSConvParam(max_bond_dimension=500, max_num_sweeps=max_sweep, max_num_lanczos_iter=100, variance_tol=1e-9)
+    myConv = mps.MPSConvParam(max_bond_dimension=500, max_num_sweeps=max_sweep, max_num_lanczos_iter=100, variance_tol=1e-12, method=specflag, warmup_bond_dimension=500)
 
     #lambda_list = np.logspace(lambda_lo, lambda_up, itr)
-    lambda_list=np.linspace(lambda_lo,lambda_up,itr)
+    #lambda_list=np.linspace(lambda_lo,lambda_up,itr)
 
 
-    #lambda_list = np.array([0, 0.03, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5, 6, 7,
-    # 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 40, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000])
+    lambda_list = np.array([ 0.0, 0.03, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5, 6, 7,
+     8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 30, 40, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000])
+
 
     if not eefactor:
         lambda_list = np.array([0, 0.03, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.25, 1.5, 1.75, 2, 10, 20, 30, 40, 50, 100, 200, 500, 1000 ])
@@ -115,15 +118,21 @@ def main(PostProcess=False):
 
     # Define statics
         lambda_nuc = lambda_e
-        ID = testflag + 'L_' + str(L) + 'N' + str(N) + 'int' + str(int_range) +  'lambda' + str(lambda_nuc) + 'exc' + str(exchange) + 'eig' + str(eigenstate) + 'factor' + str(eefactor) + '_' + str(nfactor)
+
+        ID = 'var' + testflag + 'L_' + str(L) + 'N' + str(N) + 'int' + str(int_range) +  'lambda' + str(lambda_nuc) + 'exc' + str(exchange) + 'eig' + \
+         str(eigenstate) + 'factor' + str(eefactor) + '_' + str(nfactor)  + specflag
+
+
+        dirID = 'var' + testflag + 'L_' + str(L) + 'N' + str(N) + 'int' + str(int_range)  + 'exc' + str(exchange) + 'eig' + \
+         str(eigenstate) + 'factor' + str(eefactor) + '_' + str(nfactor) + specflag +  '/'
 
         parameters.append({ 
         # Directories
-            'simtype'                   : 'Finite',
+            'simtype'                   : testflag,
             'job_ID'                    : 'GWB_ET',
             'unique_ID'                 : ID,
-            'Write_Directory'           : 'GWB_ET/',
-            'Output_Directory'          : 'OUTPUTS_GWB_ET/',
+            'Write_Directory'           : dirID,
+            'Output_Directory'          : 'OUTPUTS' + dirID,
         # System size and Hamiltonian parameters
             'L'                         : L,
             't'                         : t, 
@@ -195,12 +204,12 @@ def main(PostProcess=False):
 
 
     file_name = testflag + str(L) + '_' + str(N) + 'res_ex_' + str(exchange)  + '_eig' + str(eigenstate) +'_range' +  str(int_range) +'_' + str(max_sweep) + '.dat'
-    gs_name = 'gs' + testflag + str(L) + '_' + str(N) + 'int' + str(int_range) + '_ex_' + str(exchange)  + '_eescale_' + str(eefactor) + '_nscale_' + str(nfactor) + '.dat'
+    gs_name = 'gsvar' +  testflag + str(L) + '_' + str(N) + 'int' + str(int_range) + '_ex_' + str(exchange)  + '_eescale_' + str(eefactor) + '_nscale_' + str(nfactor) + specflag + '.dat'
     plot_name = testflag + str(L) + '_' + str(N) + 'energy_ex_' + str(exchange)   + '_eig' +  str(eigenstate) + '_range' +  str(int_range) +'_' + str(max_sweep) + '.png'
 
     np.savetxt(file_name, newenergy, fmt='%10.5f')
     np.savetxt(gs_name, gsenergy, fmt='%8.5f')
-    eplot(lambda_list, newenergy, plot_name, itr_count)
+    #eplot(lambda_list, newenergy, plot_name, itr_count)
 
 
     return
